@@ -33,7 +33,7 @@ public class ParkingLot {
     }
 
 
-    public void unParkVehicle(int slotNo, Car car) {
+    public void unParkVehicle(Car car) {
         if(slots.containsKey(slotNo))
         {
             slots.remove(slotNo);
@@ -42,5 +42,10 @@ public class ParkingLot {
         else {
             //car is not parked
         }
+    }
+
+    public boolean isParked(Car myCar) {
+        if (slots.containsValue(myCar)) return true;
+        return false;
     }
 }
