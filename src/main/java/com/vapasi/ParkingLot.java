@@ -1,51 +1,42 @@
 package com.vapasi;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 
 public class ParkingLot {
 
     private HashMap<Integer, Car> slots;
-    private static int slotNo;
-    private LinkedList<Integer> availableSlots;
+    private static int token;
 
     public static final ParkingLot parkingLot = new ParkingLot();
 
     private ParkingLot() {
         slots = new HashMap<>();
-        availableSlots = new LinkedList<>();
-        slotNo = 0;
+        token = 0;
     }
 
     public static ParkingLot createInstance() {
         return parkingLot;
     }
 
-    public int parkVehicle(Car car) {
-        if(availableSlots.isEmpty())
-        {
-            slotNo++;
-            slots.put(slotNo, car);
-        } else {
-            slots.put(availableSlots.getFirst(), car);
-        }
-        return slotNo;
+    public void parkVehicle(int token, Car car) {
+        if(token <= 0)
+            throw new TokenException("Please get token before parking the vehicle.");
+        if(slots.containsKey(token))
+            throw new TokenException("Token already in use. Please get new token to park the vehicle");
+        slots.put(token, car);
     }
 
 
     public void unParkVehicle(Car car) {
-        if(slots.containsKey(slotNo))
-        {
-            slots.remove(slotNo);
-            availableSlots.add(slotNo);
-        }
-        else {
-            //car is not parked
-        }
+       slots.remove(car);
     }
 
     public boolean isParked(Car myCar) {
-        if (slots.containsValue(myCar)) return true;
-        return false;
+        return slots.containsValue(myCar);
     }
+
+    public int generateToken() {
+        return ++token;
+    }
+
 }
