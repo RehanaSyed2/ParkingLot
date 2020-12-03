@@ -1,42 +1,65 @@
 package com.vapasi;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ParkingLot {
+    public static final ParkingLot PARKINGLOT_INSTANCE = new ParkingLot();
+    public static final int PARKINGLOT_CAPACITY = 2;
 
-    private HashMap<Integer, Car> slots;
-    private static int token;
+    Map<Object, Object> parkingMap = new HashMap<>();
 
-    public static final ParkingLot parkingLot = new ParkingLot();
+    private List<Observer> observers;
+
+    public void registerObserver(Observer observer) {
+        observers.add(observer);
+    }
+
 
     private ParkingLot() {
-        slots = new HashMap<>();
-        token = 0;
+        observers = new ArrayList<Observer>();
     }
 
-    public static ParkingLot createInstance() {
-        return parkingLot;
+    public Object parkTheCar(Object carObject) throws ParkingUnavailableException {
+        if(!isFull()) {
+            Object token = new Object();
+            parkingMap.put(token,carObject);
+            notifyObservers(isFull());
+            return token;
+        }
+        throw new ParkingUnavailableException("Parking Lot is Full");
+
     }
 
-    public void parkVehicle(int token, Car car) {
-        if(token <= 0)
-            throw new TokenException("Please get token before parking the vehicle.");
-        if(slots.containsKey(token))
-            throw new TokenException("Token already in use. Please get new token to park the vehicle");
-        slots.put(token, car);
+    public boolean isFull() {
+        return parkingMap.size() == PARKINGLOT_CAPACITY;
     }
 
-
-    public void unParkVehicle(Car car) {
-       slots.remove(car);
+    public void notifyObservers(boolean isFull) {
+        for(Observer observer: observers) {
+            observer.notify(isFull);
+        }
     }
 
-    public boolean isParked(Car myCar) {
-        return slots.containsValue(myCar);
+    public Object unParkTheCar(Object token) {
+        Object carObject = parkingMap.get(token);
+        if (isAllotted(token)) {
+            parkingMap.remove(token);
+            notifyObservers(isFull());
+            return carObject;
+        }
+        throw new NoSuchTokenException("No car is parked with this token");
     }
 
-    public int generateToken() {
-        return ++token;
+    public boolean isAllotted(Object carObject) {
+        return parkingMap.containsKey(carObject);
     }
+
+    public void clearParkingLot() {
+        parkingMap.clear();
+    }
+
 
 }

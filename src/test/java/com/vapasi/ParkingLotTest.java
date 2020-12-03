@@ -1,43 +1,63 @@
 package com.vapasi;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.vapasi.ParkingLot.PARKINGLOT_INSTANCE;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ParkingLotTest {
 
-    private ParkingLot parkingLot = ParkingLot.createInstance();
-    Car myCar = new Car("KA01MP9087");
+    @BeforeEach
+    public void setup(){
+        PARKINGLOT_INSTANCE.registerObserver(new Owner());
+        PARKINGLOT_INSTANCE.registerObserver(new Attender());
+        PARKINGLOT_INSTANCE.clearParkingLot();
+    }
 
     @Test
-    public void shouldReturnTokenForParkingTheVehicle() {
-        int actualToken = parkingLot.generateToken();
-        int expectedToken = 1;
-        assertEquals(expectedToken, actualToken);
+    public void shouldParkCar() throws ParkingUnavailableException {
+        Object carObject = new Object();
+        Object token = PARKINGLOT_INSTANCE.parkTheCar(carObject);
+        boolean actualOutput = PARKINGLOT_INSTANCE.isAllotted(token);
+        assertEquals(true, actualOutput);
     }
 
 
     @Test
-    public void shouldParkTheVehicle() {
-        parkingLot.parkVehicle(parkingLot.generateToken(), myCar);
-        assertTrue(parkingLot.isParked(myCar));
+    public void shouldUnParkCar() throws ParkingUnavailableException {
+        Object carObject = new Object();
+        Object token = PARKINGLOT_INSTANCE.parkTheCar(carObject);
+        carObject = PARKINGLOT_INSTANCE.unParkTheCar(token);
+        boolean actualOutput = PARKINGLOT_INSTANCE.isAllotted(token);
+        assertEquals(false, actualOutput);
+
+        assertThrows(NoSuchTokenException.class, () -> PARKINGLOT_INSTANCE.unParkTheCar(new Object()));
     }
 
     @Test
-    public void shouldThrowExceptionWhenTryingToParkWithoutToken() {
-        assertThrows(TokenException.class, ()->{parkingLot.parkVehicle(0, myCar);});
+    public void shouldPassParkingFullMessageToOwner() throws ParkingUnavailableException {
+        PARKINGLOT_INSTANCE.parkTheCar(new Object());
+        PARKINGLOT_INSTANCE.parkTheCar(new Object());
+        assertTrue(Owner.isFullSignOn);
     }
 
     @Test
-    public void shouldThrowExceptionWhenTryingToParkWithUsedToken() {
-        parkingLot.parkVehicle(1, myCar);
-        assertThrows(TokenException.class, ()->{parkingLot.parkVehicle(1, myCar);});
+    public void shouldPassParkingAvailableMessageToOwner() throws ParkingUnavailableException {
+        PARKINGLOT_INSTANCE.parkTheCar(new Object());
+
+        Object token =PARKINGLOT_INSTANCE.parkTheCar(new Object());
+        assertTrue(Owner.isFullSignOn);
+
+        PARKINGLOT_INSTANCE.unParkTheCar(token);
+        assertFalse(Owner.isFullSignOn);
     }
 
     @Test
-    public void shouldUnparkTheVehicle() {
-        parkingLot.unParkVehicle(myCar);
-        assertFalse(parkingLot.isParked(myCar));
-    }
+    public void shouldThrowParkingUnAvailableException() throws ParkingUnavailableException {
+        PARKINGLOT_INSTANCE.parkTheCar(new Object());
+        PARKINGLOT_INSTANCE.parkTheCar(new Object());
 
+        assertThrows(ParkingUnavailableException.class,()->PARKINGLOT_INSTANCE.parkTheCar(new Object()));
+    }
 }
