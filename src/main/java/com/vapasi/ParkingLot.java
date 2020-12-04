@@ -9,6 +9,7 @@ public class ParkingLot {
     public static final ParkingLot PARKINGLOT_INSTANCE = new ParkingLot();
     public static final int PARKINGLOT_CAPACITY = 2;
 
+
     Map<Object, Object> parkingMap = new HashMap<>();
 
     private List<Observer> observers;
@@ -47,10 +48,13 @@ public class ParkingLot {
         Object carObject = parkingMap.get(token);
         if (isAllotted(token)) {
             parkingMap.remove(token);
-            notifyObservers(isFull());
-            return carObject;
+        } else throw new NoSuchTokenException("No car is parked with this token");
+        if (parkingMap.size() == PARKINGLOT_CAPACITY - 1) {
+            for(Observer observer: observers) {
+                if (observer instanceof Owner) observer.notify(false);
+            }
         }
-        throw new NoSuchTokenException("No car is parked with this token");
+        return carObject;
     }
 
     public boolean isAllotted(Object carObject) {

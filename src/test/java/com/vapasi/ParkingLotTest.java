@@ -43,7 +43,7 @@ public class ParkingLotTest {
     }
 
     @Test
-    public void shouldPassParkingAvailableMessageToOwner() throws ParkingUnavailableException {
+    public void shouldPassParkingAvailableAgainMessageToOwner() throws ParkingUnavailableException {
         PARKINGLOT_INSTANCE.parkTheCar(new Object());
 
         Object token =PARKINGLOT_INSTANCE.parkTheCar(new Object());
